@@ -1,3 +1,4 @@
 python-dotenv
 discord.py
 google-generativeai
+flask

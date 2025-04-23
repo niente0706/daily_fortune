@@ -4,22 +4,38 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 import datetime
 from discord.ext import tasks
+from flask import Flask
+import threading
 
-# 環境変数の取得
+# Flask server settings
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Daily Fortune Bot is running!"
+
+def run_http_server():
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
+
+# thread for Flask server
+threading.Thread(target=run_http_server).start()
+
+# load environment variables
 load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-CHANNEL_ID = int(os.getenv("DISCORD_CHANNEL_ID"))  # 数値で指定（例: 123456789012345678）
+CHANNEL_ID = int(os.getenv("DISCORD_CHANNEL_ID"))
 
-# Gemini APIの設定
+# Gemini API settings
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel("gemini-1.5-flash")
 
-# Discord Botの設定
+# Discord Bot settings
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 
-# プロンプトファイルの読み込み
+# Load prompt from file
 def load_prompt():
     with open("/home/niente0706/daily_fortune_bot/prompt.txt", "r", encoding="utf-8") as f:
         return f.read()
@@ -27,9 +43,8 @@ def load_prompt():
 @client.event
 async def on_ready():
     print(f"ログインしました: {client.user}")
-    loop.start()  # Bot準備完了後にタスクを開始
+    loop.start()
 
-# 毎日7時に定時実行
 @tasks.loop(seconds=60)
 async def loop():
     now = datetime.datetime.now().strftime("%H:%M")
@@ -40,5 +55,5 @@ async def loop():
         if channel:
             await channel.send(response.text)
 
-# Botの起動
+# Start the bot
 client.run(DISCORD_TOKEN)
