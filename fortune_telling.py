@@ -42,8 +42,16 @@ def load_prompt():
 
 @client.event
 async def on_ready():
-    print(f"ログインしました: {client.user}")
+    channel = client.get_channel(CHANNEL_ID)
+    if channel:
+        await channel.send(f"占いBotが起動しました!")
     loop.start()
+
+@client.event
+async def on_disconnect():
+    channel = client.get_channel(CHANNEL_ID)
+    if channel:
+        await channel.send(f"占いBotが停止しました!")
 
 @tasks.loop(seconds=60)
 async def loop():
