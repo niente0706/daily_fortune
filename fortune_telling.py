@@ -6,6 +6,8 @@ import datetime
 from discord.ext import tasks
 from flask import Flask
 import threading
+import requests
+import time
 
 # Flask server settings
 app = Flask(__name__)
@@ -18,8 +20,17 @@ def run_http_server():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
 
+def keep_alive():
+    while True:
+        try:
+            requests.get("https://daily-fortune.onrender.com")
+        except Exception as e:
+            print("HTTP server not alive", e)
+        time.sleep(600)
+
 # thread for Flask server
 threading.Thread(target=run_http_server).start()
+threading.Thread(target=keep_alive).start()
 
 # load environment variables
 load_dotenv()
